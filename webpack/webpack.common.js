@@ -1,9 +1,9 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 const webpack = require('webpack');
 
 module.exports = {
-  mode: 'development',
   entry: './src/client/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -17,19 +17,14 @@ module.exports = {
         use: {
           loader: "babel-loader"
         }
-      }
+      },
     ]
   },
-  devtool: 'cheap-module-eval-source-map',
   plugins: [
+    new CleanWebpackPlugin(['../dist']),
     new HtmlWebpackPlugin({
       template: "./src/client/index.html",
       filename: "./index.html"
     }),
-    new webpack.HotModuleReplacementPlugin(),
   ],
-  devServer: {
-    hot: true,
-    contentBase: '/dist',
-  }
 };

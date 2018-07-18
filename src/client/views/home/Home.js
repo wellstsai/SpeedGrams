@@ -1,7 +1,13 @@
 import React from 'react';
 
+import Game from '../game/Game';
+import './style.scss';
+
 const Home = () => (
-  <div>Home</div>
+  <div className="home">
+    Home
+    <Game />
+  </div>
 );
 
 export default Home;
