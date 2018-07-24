@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const webpack = require('webpack');
 
 module.exports = {
@@ -18,6 +19,23 @@ module.exports = {
           loader: "babel-loader"
         }
       },
+      {
+        test: /\.(gif|png|jpe?g|svg)$/i,
+        use: [
+          'file-loader',
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              bypassOnDebug: true, // webpack@1.x
+              disable: true, // webpack@2.x and newer
+            },
+          },
+        ],
+      },
+      {
+        test: /\.xml$/,
+        loader: 'xml-loader',
+      },
     ]
   },
   plugins: [
@@ -26,5 +44,11 @@ module.exports = {
       template: "./src/client/index.html",
       filename: "./index.html"
     }),
+    new CopyWebpackPlugin([
+      {
+        from: 'src/assets',
+        to: 'assets',
+      },
+    ]),
   ],
 };
