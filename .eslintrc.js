@@ -5,7 +5,6 @@ module.exports = {
         "node": true
     },
     "extends": "eslint:recommended",
-    "installedESLint": true,
     "parserOptions": {
         "ecmaFeatures": {
             "experimentalObjectRestSpread": true,
@@ -19,7 +18,7 @@ module.exports = {
     "rules": {
         "indent": [
             "error",
-            4
+            2
         ],
         "linebreak-style": [
             "error",
