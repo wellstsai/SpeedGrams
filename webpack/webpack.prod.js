@@ -1,6 +1,6 @@
 const merge = require('webpack-merge');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const common = require('./webpack.common.js');
 
 module.exports = merge(common, {
@@ -10,17 +10,17 @@ module.exports = merge(common, {
       {
         test: /\.scss$/,
         use: [
-            MiniCssExtractPlugin.loader,
-            "css-loader",
-            "sass-loader"
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'sass-loader'
         ]
       }
     ]
   },
   plugins: [
     new MiniCssExtractPlugin({
-        filename: "[name].css",
-        chunkFilename: "[id].css"
+      filename: '[name].css',
+      chunkFilename: '[id].css'
     }),
     new UglifyJSPlugin()
   ],

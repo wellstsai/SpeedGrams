@@ -6,15 +6,33 @@ const startNewGame = (app, resources, numOfPlayers) => {
 
   // setup/render board based on numOfPlayers
     // randomize board
-    const tileBank = getTileBank();
-    renderStartTiles(app, resources, tileBank);
+  const tileBank = getTileBank();
+  const scrollbarContainer = renderScrollbar(app);
+  renderStartTiles(app, resources, tileBank, scrollbarContainer);
 
 
   // gameOn loop with game logic
 
 };
 
-const renderStartTiles = (app, resources, tileBank) => {
+const renderScrollbar = (app) => {
+  const bg = new PIXI.Sprite(PIXI.Texture.WHITE);
+  bg.width = 800;
+  bg.height = 150;
+  bg.tint = 0xff0000;
+  bg.y = app.screen.height - bg.height;
+  app.stage.addChild(bg);
+  
+  const scrollbarContainer = new PIXI.Container({ backgroundColor: 'white' });
+  scrollbarContainer.x = 0 + 50;
+  scrollbarContainer.y = app.screen.height - 100;
+  app.stage.addChild(scrollbarContainer);
+
+
+  return scrollbarContainer;
+};
+
+const renderStartTiles = (app, resources, tileBank, scrollbarContainer) => {
   const startingTiles = getStartingTiles(2, tileBank); // returns array
   const playerTiles = {};
   startingTiles.forEach((letter, index) => {
@@ -28,16 +46,20 @@ const renderStartTiles = (app, resources, tileBank) => {
 
     // position the sprite
     const letterSprite = playerTiles[`${letter}${index}`].sprite;
-    letterSprite.x = 68;
-    letterSprite.y = 100;
+    letterSprite.x = (index % 12) * 53;
+    letterSprite.y = Math.floor(index / 12) * 53;
+    console.log('xy', letterSprite.x, letterSprite.y)
     letterSprite.interactive = true;
+    letterSprite.buttonMode = true;
+    letterSprite.anchor.set(0.5);
     letterSprite.scale.set(0.2);
 
     letterSprite
       .on('pointerdown', onDragStart.bind(letterSprite))
       .on('pointerup', onDragEnd.bind(letterSprite))
+      .on('pointerupoutside', onDragEnd.bind(letterSprite))
       .on('pointermove', onDragMove.bind(letterSprite));
-    app.stage.addChild(letterSprite);
+    scrollbarContainer.addChild(letterSprite);
   });
 };
 

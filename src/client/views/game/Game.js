@@ -12,7 +12,6 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    // const app = new PIXI.Application(800, 600, {backgroundColor : 0x1099bb});
     document.getElementById('game').appendChild(this.app.view);
     PIXI.loader
       .add('tiles', 'assets/images/wood_spritesheet.json')
