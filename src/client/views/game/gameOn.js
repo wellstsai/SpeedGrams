@@ -1,4 +1,4 @@
-const gameOn = () {
+const gameOn = () => {
   // game logic here. waits until a player has won
 
   // get a tile aka peel, triggered by socket
