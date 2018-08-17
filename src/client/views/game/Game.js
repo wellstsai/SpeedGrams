@@ -6,7 +6,7 @@ import startNewGame from './startNewGame';
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.app = new PIXI.Application(800, 600, {backgroundColor : 'black'});
+    this.app = new PIXI.Application(800, 600, { backgroundColor : 'transparent' });
 
     this.onLoad = this.onLoad.bind(this);
   }

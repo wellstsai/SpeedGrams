@@ -13,7 +13,6 @@ const startNewGame = (app, resources, numOfPlayers) => {
   const scrollbarContainer = renderBottomPanel(app);
   renderStartTiles(app, resources, tileBank, scrollbarContainer);
   renderScroller(app, scrollbarContainer);
-  console.log('scrollbarContainer height 2', scrollbarContainer.height)
 
   // gameOn loop with game logic
 
@@ -23,7 +22,7 @@ const renderBottomPanel = (app) => {
   const bg = new PIXI.Sprite(PIXI.Texture.WHITE);
   bg.width = 800;
   bg.height = bottomPanelHeight;
-  bg.tint = 0xff0000;
+  bg.tint = 0x336600;
   bg.y = app.screen.height - bg.height;
   app.stage.addChild(bg);
   
@@ -91,6 +90,12 @@ const renderScroller = (app, scrollbarContainer) => {
     .on('pointerupoutside', (e) => onScrollerEnd.bind(scroller)(e, scrollbarContainer))
     .on('pointermove', (e) => onScrollerMove.bind(scroller)(e, scrollbarContainer));
   app.stage.addChild(scroller);
+
+  const scrollerFrame = new PIXI.Sprite(PIXI.Texture.WHITE);
+  scrollerFrame.width = app.screen.width;
+  scrollerFrame.height = app.screen.height;
+  app.stage.addChild(scrollerFrame);
+
 };
 
 function onDragStart(event) {
