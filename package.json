@@ -23,6 +23,7 @@
     "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
     "css-loader": "^1.0.0",
@@ -43,6 +44,7 @@
     "xml-loader": "^1.2.1"
   },
   "dependencies": {
+    "babel-eslint": "^8.2.6",
     "lodash": "^4.17.10",
     "pixi.js": "^4.8.1",
     "react": "^16.4.1",

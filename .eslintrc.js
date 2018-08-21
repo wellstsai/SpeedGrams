@@ -5,12 +5,15 @@ module.exports = {
         "node": true
     },
     "extends": "eslint:recommended",
+    "parser": "babel-eslint",
     "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
         "ecmaFeatures": {
-            "experimentalObjectRestSpread": true,
-            "jsx": true
-        },
-        "sourceType": "module"
+            "jsx": true,
+            "modules": true,
+            "experimentalObjectRestSpread": true
+        }
     },
     "plugins": [
         "react"

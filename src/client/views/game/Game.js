@@ -1,14 +1,19 @@
 import React, { Component } from 'react';
 import * as PIXI from 'pixi.js';
+import { createStore } from 'redux';
 
-import startNewGame from './startNewGame';
+import gameReducer from '../../store/reducers/gameReducer';
+import { getGameState } from '../../store/utils/getGameState';
+import startNewGame from './new-game/startNewGame';
 
 class Game extends Component {
   constructor(props) {
     super(props);
-    this.app = new PIXI.Application(800, 600, { backgroundColor : 'transparent' });
+    this.store = createStore(gameReducer);
+    this.initializeGameStore(this.store);
 
-    this.onLoad = this.onLoad.bind(this);
+    const gameState = getGameState(this.store);
+    this.app = gameState.app;
   }
 
   componentDidMount() {
@@ -18,11 +23,22 @@ class Game extends Component {
       .load(this.onLoad);
   }
 
-  onLoad(loader, resources) {
+  initializeGameStore = (store) => {
+    store.dispatch({
+      type: 'ADD_APP',
+      app: new PIXI.Application(800, 600, { backgroundColor : 'transparent' })
+    });
+  };
+
+  onLoad = (loader, resources) => {
     // load start screen
     // join multiplayer
     // start a new game
-    startNewGame(this.app, resources, 2);
+    this.store.dispatch({
+      type: 'ADD_RESOURCES',
+      resources,
+    });
+    startNewGame(this.store, resources, 2);
   }
 
   render() {
