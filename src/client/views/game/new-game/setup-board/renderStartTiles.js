@@ -23,11 +23,7 @@ const renderStartTiles = (store) => {
     // custom params
     letterSprite.resource = resources.tiles.textures[`letter_${letter.toUpperCase()}.png`];
     letterSprite.letter = letter;
-
-    playerTiles.push({
-      id: index,
-      sprite: letterSprite,
-    });
+    letterSprite.index = index;
 
     letterSprite
       .on('pointerdown', (e) => onPlayerTileDragStart.bind(letterSprite)(e, store))
@@ -35,6 +31,18 @@ const renderStartTiles = (store) => {
       .on('pointerupoutside', onPlayerTileDragEnd.bind(letterSprite))
       .on('pointermove', onPlayerTileDragMove.bind(letterSprite));
     bottomPanelScrollLayer.addChild(letterSprite);
+
+    playerTiles.push({
+      id: index,
+      letter,
+      sprite: letterSprite,
+    });
+
+  });
+
+  store.dispatch({
+    type: 'INITIALIZE_PLAYER_TILES',
+    playerTiles,
   });
 };
 
@@ -75,8 +83,8 @@ function onPlayerTileDragStart(event, store) {
 
   mainBoardTileSprite
     .on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(mainBoardTileSprite)(e, app))
-    .on('pointerup', onMainBoardTileSpritePointerUp.bind(mainBoardTileSprite).bind(this))
-    .on('pointerdown', onMainBoardTileSpritePointerDown.bind(mainBoardTileSprite).bind(this));
+    .on('pointerup', onMainBoardTileSpritePointerUp.bind(mainBoardTileSprite))
+    .on('pointerdown', (e) => onMainBoardTileSpritePointerDown.bind(mainBoardTileSprite)(e, store, this));
   mainBoardLayer.addChild(mainBoardTileSprite);
 }
 
@@ -108,10 +116,15 @@ function onMainBoardTileSpritePointerUp() {
   console.log('pointerup hit')
 }
 
-function onMainBoardTileSpritePointerDown() {
-  console.log('pointerdown hit')
+function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
   this.dragging = false;
   this.off('pointermove');
+
+  store.dispatch({
+    type: 'DELETE_PLAYER_TILE',
+    index: playerTileSprite.index,
+  });
+  playerTileSprite.destroy();
 }
 
 export default renderStartTiles;

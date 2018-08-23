@@ -7,29 +7,46 @@ const defaultState = {
   mainBoardLayer: null,
   bottomPanelHeight: 150,
   scrollerBaseHeight: 100,
+  playerTiles: [],
 };
 
 const gameReducer = (state = _.cloneDeep(defaultState), action) => {
   switch (action.type) {
   case 'ADD_APP':
-    return Object.assign({}, state, {
-      app: action.app
-    });
+    return {
+      ...state,
+      app: action.app,
+    };
   
   case 'ADD_RESOURCES':
-    return Object.assign({}, state, {
-      resources: action.resources
-    });
+    return {
+      ...state,
+      resources: action.resources,
+    };
   
   case 'ADD_BOTTOM_PANEL_SCROLL_LAYER':
-    return Object.assign({}, state, {
-      bottomPanelScrollLayer: action.bottomPanelScrollLayer
-    });
+    return {
+      ...state,
+      bottomPanelScrollLayer: action.bottomPanelScrollLayer,
+    };
   
   case 'ADD_MAIN_BOARD_LAYER':
-    return Object.assign({}, state, {
-      mainBoardLayer: action.mainBoardLayer
-    });
+    return {
+      ...state,
+      mainBoardLayer: action.mainBoardLayer,
+    };
+
+  case 'INITIALIZE_PLAYER_TILES':
+    return {
+      ...state,
+      playerTiles: [...state.playerTiles, ...action.playerTiles],
+    };
+
+  case 'DELETE_PLAYER_TILE':
+    return {
+      ...state,
+      playerTiles: state.playerTiles.filter((tile, index) => index !== action.index),
+    };
 
   default:
     return state;
