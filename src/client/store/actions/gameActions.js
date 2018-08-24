@@ -32,3 +32,8 @@ export const addMainBoardTile = (mainBoardTile) => ({
   type: 'ADD_MAIN_BOARD_TILE',
   mainBoardTile,
 });
+
+export const toggleIsDragging = (isDragging) => ({
+  type: 'TOGGLE_IS_DRAGGING',
+  isDragging,
+});

@@ -10,6 +10,7 @@ const defaultState = {
   scrollerBaseHeight: 100,
   playerTiles: [],
   mainBoardTileGraph: {},
+  isDragging: null,
 };
 
 const gameReducer = (state = _.cloneDeep(defaultState), action) => {
@@ -58,6 +59,12 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
         ...state.mainBoardTileGraph,
         ...action.mainBoardTile,
       },
+    };
+
+  case 'TOGGLE_IS_DRAGGING':
+    return {
+      ...state,
+      isDragging: action.isDragging,
     };
 
   default:

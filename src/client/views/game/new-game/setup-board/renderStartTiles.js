@@ -72,6 +72,22 @@ function onPlayerTileDragStart(event, store) {
   mainBoardTileSprite.letter = this.letter;
   mainBoardTileSprite.id = shortid.generate();
 
+  // create up down left right sprite for each, alpha 0, position pending, add listeners, add id, dispatch
+  const hitSpots = ['up', 'down', 'left', 'right'];
+  hitSpots.forEach((hitSpot) => {
+    mainBoardTileSprite[hitSpot] = new PIXI.Sprite(PIXI.Texture.WHITE);
+    mainBoardTileSprite[hitSpot].alpha = 1; // change to 0
+    mainBoardTileSprite[hitSpot].tint = 0x36c2ed;
+    mainBoardTileSprite[hitSpot].width = mainBoardTileSprite.width;
+    mainBoardTileSprite[hitSpot].height = mainBoardTileSprite.height;
+    mainBoardTileSprite[hitSpot].interactive = true;
+    mainBoardTileSprite[hitSpot].id = shortid.generate();
+
+    // dispatch
+
+    mainBoardLayer.addChild(mainBoardTileSprite[hitSpot]);
+  });
+
   mainBoardTileSprite
     .on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(mainBoardTileSprite)(e, app))
     .on('pointerdown', (e) => onMainBoardTileSpritePointerDown.bind(mainBoardTileSprite)(e, store, this));
@@ -79,7 +95,6 @@ function onPlayerTileDragStart(event, store) {
 }
 
 function onMainBoardTileSpritePointerMove(event, app) {
-  console.log('hit pointermove', this.letter)
   if (this.dragging) {
     const mouseposition = app.renderer.plugins.interaction.mouse.global;
     this.x = mouseposition.x;
@@ -90,13 +105,33 @@ function onMainBoardTileSpritePointerMove(event, app) {
 function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
   const { app, mainBoardBounds } = getGameState(store);
 
+  console.log("event", event.target)
+
   if (this.dragging) {
     this.off('pointermove');
     this.dragging = false;
+
+    store.dispatch({
+      type: 'TOGGLE_IS_DRAGGING',
+      isDragging: false,
+    });
+
+    // set hit spots position
+    
+    // check if hit other hit spots, if so, set alpha to 0
+
   } else {
     this.on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(this)(e, app));
     this.dragging = true;
     this.initialPosition = [this.x, this.y];
+
+    store.dispatch({
+      type: 'TOGGLE_IS_DRAGGING',
+      isDragging: true,
+    });
+
+    // set hit spots alpha 1
+    // check to see if movd out of other hit spots, if so, set alpha to 1
   }
 
   if (!isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
