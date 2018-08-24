@@ -48,6 +48,7 @@ const renderMainBoardLayers = (store) => {
   store.dispatch({
     type: 'ADD_MAIN_BOARD_LAYER',
     mainBoardLayer: mainBoardContainer,
+    mainBoardBounds: bg.getBounds(),
   });
 };
 

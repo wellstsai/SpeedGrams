@@ -5,9 +5,11 @@ const defaultState = {
   resources: null,
   bottomPanelScrollLayer: null,
   mainBoardLayer: null,
+  mainBoardBounds: null,
   bottomPanelHeight: 150,
   scrollerBaseHeight: 100,
   playerTiles: [],
+  mainBoardTileGraph: {},
 };
 
 const gameReducer = (state = _.cloneDeep(defaultState), action) => {
@@ -34,6 +36,7 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
     return {
       ...state,
       mainBoardLayer: action.mainBoardLayer,
+      mainBoardBounds: action.mainBoardBounds,
     };
 
   case 'INITIALIZE_PLAYER_TILES':
@@ -46,6 +49,15 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
     return {
       ...state,
       playerTiles: state.playerTiles.filter((tile, index) => index !== action.index),
+    };
+
+  case 'ADD_MAIN_BOARD_TILE':
+    return {
+      ...state,
+      mainBoardTileGraph: {
+        ...state.mainBoardTileGraph,
+        ...action.mainBoardTile,
+      },
     };
 
   default:

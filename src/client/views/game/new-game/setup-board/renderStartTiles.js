@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-
+import shortid from 'shortid';
 import { getTileBank, getStartingTiles } from '../../setup';
 import { getGameState } from '../../../../store/utils/getGameState';
 
@@ -26,10 +26,7 @@ const renderStartTiles = (store) => {
     letterSprite.index = index;
 
     letterSprite
-      .on('pointerdown', (e) => onPlayerTileDragStart.bind(letterSprite)(e, store))
-      .on('pointerup', onPlayerTileDragEnd.bind(letterSprite))
-      .on('pointerupoutside', onPlayerTileDragEnd.bind(letterSprite))
-      .on('pointermove', onPlayerTileDragMove.bind(letterSprite));
+      .on('pointerdown', (e) => onPlayerTileDragStart.bind(letterSprite)(e, store));
     bottomPanelScrollLayer.addChild(letterSprite);
 
     playerTiles.push({
@@ -46,29 +43,22 @@ const renderStartTiles = (store) => {
   });
 };
 
-// on dragstart
-  // alpha 0 on bottom panel layer
-  // add to main board layer
-// on move
-  // move main board duplicate
-// on dragend
-  // if within bottompanel bounds
-    // delete from main board layer
-    // alpha 1 on bottom panel layer
-  // if within main board bounds
-    // delete from bottom panel layer
-    // dragging false
+const isWithinBounds = (sprite, bounds) => {
+  const { width, height, x, y } = bounds;
+
+  const isWithinXBounds = sprite.x > x && sprite.x < width;
+  const isWithinYBounds = sprite.y > y && sprite.y < height;
+
+  if (isWithinXBounds && isWithinYBounds) {
+    return true;
+  }
+  return false;
+};
 
 function onPlayerTileDragStart(event, store) {
-  // store a reference to the data
-  // the reason for this is because of multitouch
-  // we want to track the movement of this particular touch
-  // this.data = event.data;
   this.alpha = 0;
-  this.dragging = false;
 
-  const gameState = getGameState(store);
-  const { app, mainBoardLayer } = gameState;
+  const { app, mainBoardLayer } = getGameState(store);
 
   const mainBoardTileSprite = new PIXI.Sprite(this.resource);
   const currentPosition = app.renderer.plugins.interaction.mouse.global;
@@ -80,27 +70,12 @@ function onPlayerTileDragStart(event, store) {
   mainBoardTileSprite.anchor.set(0.5);
   mainBoardTileSprite.scale.set(0.2);
   mainBoardTileSprite.letter = this.letter;
+  mainBoardTileSprite.id = shortid.generate();
 
   mainBoardTileSprite
     .on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(mainBoardTileSprite)(e, app))
-    .on('pointerup', onMainBoardTileSpritePointerUp.bind(mainBoardTileSprite))
     .on('pointerdown', (e) => onMainBoardTileSpritePointerDown.bind(mainBoardTileSprite)(e, store, this));
   mainBoardLayer.addChild(mainBoardTileSprite);
-}
-
-function onPlayerTileDragEnd() {
-  this.data = null;
-  // this.alpha = 1;
-  this.dragging = false;
-  // set the interaction data to null
-}
-
-function onPlayerTileDragMove() {
-  if (this.dragging) {
-    const newPosition = this.data.getLocalPosition(this.parent);
-    this.x = newPosition.x;
-    this.y = newPosition.y;
-  }
 }
 
 function onMainBoardTileSpritePointerMove(event, app) {
@@ -112,19 +87,43 @@ function onMainBoardTileSpritePointerMove(event, app) {
   }
 }
 
-function onMainBoardTileSpritePointerUp() {
-  console.log('pointerup hit')
-}
-
 function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
-  this.dragging = false;
-  this.off('pointermove');
+  const { app, mainBoardBounds } = getGameState(store);
 
-  store.dispatch({
-    type: 'DELETE_PLAYER_TILE',
-    index: playerTileSprite.index,
-  });
-  playerTileSprite.destroy();
+  if (this.dragging) {
+    this.off('pointermove');
+    this.dragging = false;
+  } else {
+    this.on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(this)(e, app));
+    this.dragging = true;
+    this.initialPosition = [this.x, this.y];
+  }
+
+  if (!isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
+    this.destroy();
+    playerTileSprite.alpha = 1;
+  } else if (!isWithinBounds(this, mainBoardBounds) && playerTileSprite._destroyed) {
+    this.x = this.initialPosition[0];
+    this.y = this.initialPosition[1];
+  } else if (isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
+    store.dispatch({
+      type: 'DELETE_PLAYER_TILE',
+      index: playerTileSprite.index,
+    });
+    playerTileSprite.destroy();
+
+    store.dispatch({
+      type: 'ADD_MAIN_BOARD_TILE',
+      mainBoardTile: {
+        id: this.id,
+        letter: this.letter,
+        up: null,
+        down: null,
+        left: null,
+        right: null,
+      },
+    });
+  }
 }
 
 export default renderStartTiles;

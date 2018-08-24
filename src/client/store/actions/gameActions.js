@@ -27,3 +27,8 @@ export const deletePlayerTile = (index) => ({
   type: 'DELETE_PLAYER_TILE',
   index,
 });
+
+export const addMainBoardTile = (mainBoardTile) => ({
+  type: 'ADD_MAIN_BOARD_TILE',
+  mainBoardTile,
+});
