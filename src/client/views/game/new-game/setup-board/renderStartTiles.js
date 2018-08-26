@@ -55,10 +55,28 @@ const isWithinBounds = (sprite, bounds) => {
   return false;
 };
 
+const positionHitSpots = (parentTile, storeHitSpots) => {
+  const { id, x, y, width, height } = parentTile;
+  const relevantHitSpots = storeHitSpots.filter((hitSpot) => hitSpot.parentId === id);
+
+  // top
+  relevantHitSpots[0].x = x - (width / 2);
+  relevantHitSpots[0].y = y - (height * 1.5);
+  // bottom
+  relevantHitSpots[1].x = x - (width / 2);
+  relevantHitSpots[1].y = y + (height / 2);
+  // left
+  relevantHitSpots[2].x = x - (width * 1.5);
+  relevantHitSpots[2].y = y - (height / 2);
+  // right
+  relevantHitSpots[3].x = x + (width / 2);
+  relevantHitSpots[3].y = y - (height / 2);
+};
+
 function onPlayerTileDragStart(event, store) {
   this.alpha = 0;
 
-  const { app, mainBoardLayer } = getGameState(store);
+  const { app, mainBoardLayer, hitSpots } = getGameState(store);
 
   const mainBoardTileSprite = new PIXI.Sprite(this.resource);
   const currentPosition = app.renderer.plugins.interaction.mouse.global;
@@ -72,9 +90,10 @@ function onPlayerTileDragStart(event, store) {
   mainBoardTileSprite.letter = this.letter;
   mainBoardTileSprite.id = shortid.generate();
 
+  hitSpots.forEach((hitSpot) => hitSpot.alpha = 0.5);
   // create up down left right sprite for each, alpha 0, position pending, add listeners, add id, dispatch
-  const hitSpots = ['up', 'down', 'left', 'right'];
-  hitSpots.forEach((hitSpot) => {
+  const hitSpotTiles = ['up', 'down', 'left', 'right'];
+  hitSpotTiles.forEach((hitSpot) => {
     mainBoardTileSprite[hitSpot] = new PIXI.Sprite(PIXI.Texture.WHITE);
     mainBoardTileSprite[hitSpot].alpha = 1; // change to 0
     mainBoardTileSprite[hitSpot].tint = 0x36c2ed;
@@ -82,8 +101,13 @@ function onPlayerTileDragStart(event, store) {
     mainBoardTileSprite[hitSpot].height = mainBoardTileSprite.height;
     mainBoardTileSprite[hitSpot].interactive = true;
     mainBoardTileSprite[hitSpot].id = shortid.generate();
+    mainBoardTileSprite[hitSpot].parentId = mainBoardTileSprite.id;
+    mainBoardTileSprite[hitSpot].covered = false;
 
-    // dispatch
+    store.dispatch({
+      type: 'ADD_HIT_SPOT',
+      hitSpot: mainBoardTileSprite[hitSpot],
+    });
 
     mainBoardLayer.addChild(mainBoardTileSprite[hitSpot]);
   });
@@ -103,9 +127,7 @@ function onMainBoardTileSpritePointerMove(event, app) {
 }
 
 function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
-  const { app, mainBoardBounds } = getGameState(store);
-
-  console.log("event", event.target)
+  const { app, mainBoardBounds, hitSpots } = getGameState(store);
 
   if (this.dragging) {
     this.off('pointermove');
@@ -116,9 +138,14 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
       isDragging: false,
     });
 
-    // set hit spots position
+    hitSpots.forEach((hitSpot) => hitSpot.alpha = 0);
+    positionHitSpots(this, hitSpots);
     
-    // check if hit other hit spots, if so, set alpha to 0
+    
+    // check if hit other hit spots, if so, cover that hit spot and own hit spots and snap
+    hitSpots.forEach((hitSpot) => {
+
+    })
 
   } else {
     this.on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(this)(e, app));
@@ -130,7 +157,12 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
       isDragging: true,
     });
 
-    // set hit spots alpha 1
+    // set hit spots alpha 1 except for own
+    hitSpots.forEach((hitSpot) => {
+      if (hitSpot.parentId !== this.id) {
+        hitSpot.alpha = 0.5;
+      }
+    });
     // check to see if movd out of other hit spots, if so, set alpha to 1
   }
 
@@ -140,6 +172,7 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
   } else if (!isWithinBounds(this, mainBoardBounds) && playerTileSprite._destroyed) {
     this.x = this.initialPosition[0];
     this.y = this.initialPosition[1];
+    positionHitSpots(this, hitSpots);
   } else if (isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
     store.dispatch({
       type: 'DELETE_PLAYER_TILE',

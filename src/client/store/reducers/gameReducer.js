@@ -11,6 +11,7 @@ const defaultState = {
   playerTiles: [],
   mainBoardTileGraph: {},
   isDragging: null,
+  hitSpots: [],
 };
 
 const gameReducer = (state = _.cloneDeep(defaultState), action) => {
@@ -65,6 +66,16 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
     return {
       ...state,
       isDragging: action.isDragging,
+    };
+
+  case 'ADD_HIT_SPOT':
+    const hitSpots = [...state.hitSpots];
+    // binary search insert
+    // check middle, if to the right go right, if left go left, otherwise splice
+    hitSpots.push(action.hitSpot);
+    return {
+      ...state,
+      hitSpots,
     };
 
   default:

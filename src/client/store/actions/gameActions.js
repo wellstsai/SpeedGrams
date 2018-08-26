@@ -37,3 +37,8 @@ export const toggleIsDragging = (isDragging) => ({
   type: 'TOGGLE_IS_DRAGGING',
   isDragging,
 });
+
+export const addHitSpot = (hitSpot) => ({
+  type: 'ADD_HIT_SPOT',
+  hitSpot,
+});
