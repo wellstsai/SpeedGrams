@@ -3,6 +3,13 @@ import shortid from 'shortid';
 import { getTileBank, getStartingTiles } from '../../setup';
 import { getGameState } from '../../../../store/utils/getGameState';
 
+const oppositeDirection = {
+  top: 'bottom',
+  bottom: 'top',
+  left: 'right',
+  right: 'left',
+};
+
 const renderStartTiles = (store) => {
   const gameState = getGameState(store);
   const { resources, bottomPanelScrollLayer } = gameState;
@@ -59,18 +66,83 @@ const positionHitSpots = (parentTile, storeHitSpots) => {
   const { id, x, y, width, height } = parentTile;
   const relevantHitSpots = storeHitSpots.filter((hitSpot) => hitSpot.parentId === id);
 
-  // top
+  relevantHitSpots[0].direction = 'top';
   relevantHitSpots[0].x = x - (width / 2);
   relevantHitSpots[0].y = y - (height * 1.5);
-  // bottom
+
+  relevantHitSpots[1].direction = 'bottom';
   relevantHitSpots[1].x = x - (width / 2);
   relevantHitSpots[1].y = y + (height / 2);
-  // left
+
+  relevantHitSpots[2].direction = 'left';
   relevantHitSpots[2].x = x - (width * 1.5);
   relevantHitSpots[2].y = y - (height / 2);
-  // right
+
+  relevantHitSpots[3].direction = 'right';
   relevantHitSpots[3].x = x + (width / 2);
   relevantHitSpots[3].y = y - (height / 2);
+};
+
+const autoSnapIfCollision = (parentTile, store) => {
+  // go through every main board tile y hit spots
+    // if y is within, go through x hit spots
+      // if x also within, add to possbileHitSpots
+  const { x, y } = parentTile;
+  const { mainBoardTileGraph, hitSpots } = getGameState(store);
+
+  
+  const possibleHitSpots = hitSpots.reduce((acc, hitSpot) => {
+    const { top, bottom, left, right } = hitSpot.getBounds();
+    if (y > top && y < bottom) {
+      if (x > left && x < right) {
+        acc.push(hitSpot);
+      }
+    }
+    return acc;
+  }, []);
+
+  console.log('possibleHitSpots', possibleHitSpots);
+  // check which hitspot is closest to tile, add to an array relevantHitSpots to account for same dimensions
+  // snap tile to closest
+  const relevantHitSpots = possibleHitSpots.reduce((acc, hitSpot) => {
+    if (
+      !acc.length ||
+      (Math.round(acc[0].x) === Math.round(hitSpot.x) && Math.round(acc[0].y) === Math.round(hitSpot.y))
+    ) {
+      acc.push(hitSpot);
+      return acc;
+    } else if (Math.hypot(x - hitSpot.x, y - hitSpot.y) < Math.hypot(x - acc[0].x, y - acc[0].y)) {
+      return [hitSpot];
+    } else {
+      return acc;
+    }
+  }, []);
+  console.log('relevantHitSpots', relevantHitSpots);
+
+  if (relevantHitSpots.length) {
+    // autosnap
+    parentTile.x = relevantHitSpots[0].x + (relevantHitSpots[0].width / 2);
+    parentTile.y = relevantHitSpots[0].y + (relevantHitSpots[0].height / 2);
+
+    // update main board graph
+    console.log('mianboardtilegraph', mainBoardTileGraph);
+    relevantHitSpots.forEach((hitSpot) => {
+      const hitTile = mainBoardTileGraph[hitSpot.parentId];
+      const placedTile = mainBoardTileGraph[parentTile.id];
+      hitTile[hitSpot.direction] = placedTile;
+      placedTile[oppositeDirection[hitSpot.direction]] = hitTile;
+    });
+  } else {
+    const directions = ['top', 'bottom', 'left', 'right'];
+    const placedTile = mainBoardTileGraph[parentTile.id];
+    directions.forEach((direction) => {
+      if (placedTile[direction]) {
+        const previouslyHitTile = placedTile[direction];
+        previouslyHitTile[oppositeDirection[direction]] = null;
+        placedTile[direction] = null;
+      }
+    });
+  }
 };
 
 function onPlayerTileDragStart(event, store) {
@@ -128,7 +200,34 @@ function onMainBoardTileSpritePointerMove(event, app) {
 
 function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
   const { app, mainBoardBounds, hitSpots } = getGameState(store);
-
+  
+  if (!isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
+    this.destroy();
+    playerTileSprite.alpha = 1;
+  } else if (!isWithinBounds(this, mainBoardBounds) && playerTileSprite._destroyed) {
+    this.x = this.initialPosition[0];
+    this.y = this.initialPosition[1];
+    positionHitSpots(this, hitSpots);
+  } else if (isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
+    store.dispatch({
+      type: 'DELETE_PLAYER_TILE',
+      index: playerTileSprite.index,
+    });
+    playerTileSprite.destroy();
+    
+    store.dispatch({
+      type: 'ADD_MAIN_BOARD_TILE',
+      mainBoardTile: {
+        id: this.id,
+        letter: this.letter,
+        up: null,
+        down: null,
+        left: null,
+        right: null,
+      },
+    });
+  }
+  
   if (this.dragging) {
     this.off('pointermove');
     this.dragging = false;
@@ -139,14 +238,8 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
     });
 
     hitSpots.forEach((hitSpot) => hitSpot.alpha = 0);
+    autoSnapIfCollision(this, store);
     positionHitSpots(this, hitSpots);
-    
-    
-    // check if hit other hit spots, if so, cover that hit spot and own hit spots and snap
-    hitSpots.forEach((hitSpot) => {
-
-    })
-
   } else {
     this.on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(this)(e, app));
     this.dragging = true;
@@ -164,33 +257,6 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
       }
     });
     // check to see if movd out of other hit spots, if so, set alpha to 1
-  }
-
-  if (!isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
-    this.destroy();
-    playerTileSprite.alpha = 1;
-  } else if (!isWithinBounds(this, mainBoardBounds) && playerTileSprite._destroyed) {
-    this.x = this.initialPosition[0];
-    this.y = this.initialPosition[1];
-    positionHitSpots(this, hitSpots);
-  } else if (isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
-    store.dispatch({
-      type: 'DELETE_PLAYER_TILE',
-      index: playerTileSprite.index,
-    });
-    playerTileSprite.destroy();
-
-    store.dispatch({
-      type: 'ADD_MAIN_BOARD_TILE',
-      mainBoardTile: {
-        id: this.id,
-        letter: this.letter,
-        up: null,
-        down: null,
-        left: null,
-        right: null,
-      },
-    });
   }
 }
 

@@ -16,59 +16,65 @@ const defaultState = {
 
 const gameReducer = (state = _.cloneDeep(defaultState), action) => {
   switch (action.type) {
-  case 'ADD_APP':
+  case 'ADD_APP': {
     return {
       ...state,
       app: action.app,
     };
+  }
   
-  case 'ADD_RESOURCES':
+  case 'ADD_RESOURCES': {
     return {
       ...state,
       resources: action.resources,
     };
+  }
   
-  case 'ADD_BOTTOM_PANEL_SCROLL_LAYER':
+  case 'ADD_BOTTOM_PANEL_SCROLL_LAYER': {
     return {
       ...state,
       bottomPanelScrollLayer: action.bottomPanelScrollLayer,
     };
+  }
   
-  case 'ADD_MAIN_BOARD_LAYER':
+  case 'ADD_MAIN_BOARD_LAYER': {
     return {
       ...state,
       mainBoardLayer: action.mainBoardLayer,
       mainBoardBounds: action.mainBoardBounds,
     };
+  }
 
-  case 'INITIALIZE_PLAYER_TILES':
+  case 'INITIALIZE_PLAYER_TILES': {
     return {
       ...state,
       playerTiles: [...state.playerTiles, ...action.playerTiles],
     };
+  }
 
-  case 'DELETE_PLAYER_TILE':
+  case 'DELETE_PLAYER_TILE': {
     return {
       ...state,
       playerTiles: state.playerTiles.filter((tile, index) => index !== action.index),
     };
+  }
 
-  case 'ADD_MAIN_BOARD_TILE':
+  case 'ADD_MAIN_BOARD_TILE': {
+    // const mainBoardTileGraph = _.cloneDeep(state.mainBoardTileGraph);
+    state.mainBoardTileGraph[action.mainBoardTile.id] = action.mainBoardTile;
     return {
       ...state,
-      mainBoardTileGraph: {
-        ...state.mainBoardTileGraph,
-        ...action.mainBoardTile,
-      },
     };
+  }
 
-  case 'TOGGLE_IS_DRAGGING':
+  case 'TOGGLE_IS_DRAGGING': {
     return {
       ...state,
       isDragging: action.isDragging,
     };
+  }
 
-  case 'ADD_HIT_SPOT':
+  case 'ADD_HIT_SPOT': {
     const hitSpots = [...state.hitSpots];
     // binary search insert
     // check middle, if to the right go right, if left go left, otherwise splice
@@ -77,9 +83,12 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
       ...state,
       hitSpots,
     };
+  }
 
-  default:
+  default:  {
     return state;
+  }
+
   }
 };
 
