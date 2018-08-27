@@ -66,25 +66,25 @@ const positionHitSpots = (parentTile, storeHitSpots) => {
   const { id, x, y, width, height } = parentTile;
   const relevantHitSpots = storeHitSpots.filter((hitSpot) => hitSpot.parentId === id);
 
-  if (!relevantHitSpots[0]._destroyed) {
+  if (relevantHitSpots[0]) {
     relevantHitSpots[0].direction = 'top';
     relevantHitSpots[0].x = x - (width / 2);
     relevantHitSpots[0].y = y - (height * 1.5);
   }
 
-  if (!relevantHitSpots[1]._destroyed) {
+  if (relevantHitSpots[1]) {
     relevantHitSpots[1].direction = 'bottom';
     relevantHitSpots[1].x = x - (width / 2);
     relevantHitSpots[1].y = y + (height / 2);
   }
 
-  if (!relevantHitSpots[2]._destroyed) {
+  if (relevantHitSpots[2]) {
     relevantHitSpots[2].direction = 'left';
     relevantHitSpots[2].x = x - (width * 1.5);
     relevantHitSpots[2].y = y - (height / 2);
   }
 
-  if (!relevantHitSpots[3]._destroyed) {
+  if (relevantHitSpots[3]) {
     relevantHitSpots[3].direction = 'right';
     relevantHitSpots[3].x = x + (width / 2);
     relevantHitSpots[3].y = y - (height / 2);
@@ -132,6 +132,7 @@ const autoSnapIfCollision = (parentTile, store) => {
     parentTile.y = relevantHitSpots[0].y + (relevantHitSpots[0].height / 2);
 
     console.log('mianboardtilegraph', mainBoardTileGraph);
+    console.log('**relevantHitSpots', relevantHitSpots);
     relevantHitSpots.forEach((hitSpot) => {
       const hitTile = mainBoardTileGraph[hitSpot.parentId];
       const placedTile = mainBoardTileGraph[parentTile.id];
@@ -140,28 +141,16 @@ const autoSnapIfCollision = (parentTile, store) => {
       hitTile[hitSpot.direction] = placedTile;
       placedTile[oppositeDirection[hitSpot.direction]] = hitTile;
       
-      // remove hitspots
-      // console.log('hitTile', hitTile)
-      // console.log('palcedTile.id', placedTile.id)
-      // console.log('hitSpots', hitSpots);
-      // const hitTileHitSpot = hitSpots.find((hitSpot) => {
-      //   // same parent ID && same direction
-      //   if (hitSpot.parentId === hitTile.id)
-      // });
-      // const placedTileHitSpot = hitSpots.find((hitSpot) => hitSpot.id === placedTile.id);
-      // hitTileHitSpot.destroy();
+      // // remove hitspots
+      // hitSpot.destroy();
+      // const placedTileHitSpot = hitSpots.find((hitSpot) => hitSpot.parentId === placedTile.id && hitSpot.direction === oppositeDirection[hitSpot.direction]);
+      // console.log('hitspots', hitSpots);
+      // console.log('placedTileHitSpot', placedTileHitSpot, placedTile.id);
       // placedTileHitSpot.destroy();
-
-      hitSpot.destroy();
-      // in hit spots find matching parent id with placedTile id and also direction === opposite and destroy
-      const placedTileHitSpot = hitSpots.find((hitSpot) => hitSpot.parentId === placedTile.id && hitSpot.direction === oppositeDirection[hitSpot.direction]);
-      console.log('placedTileHitSpot', placedTileHitSpot);
-      placedTileHitSpot.destroy();
     });
 
     // clean out destroyed hit spots
-    store.dispatch({ type: 'CLEAN_DESTROYED_HIT_SPOTS' });
-
+    // store.dispatch({ type: 'CLEAN_DESTROYED_HIT_SPOTS' });
   } else {
     const directions = ['top', 'bottom', 'left', 'right'];
     const placedTile = mainBoardTileGraph[parentTile.id];
@@ -264,16 +253,17 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
   if (this.dragging) {
     this.off('pointermove');
     this.dragging = false;
-
+    
     store.dispatch({
       type: 'TOGGLE_IS_DRAGGING',
       isDragging: false,
     });
-
+    
     hitSpots.forEach((hitSpot) => hitSpot.alpha = 0);
-
+    
     if (!this._destroyed) {
       autoSnapIfCollision(this, store);
+
       positionHitSpots(this, hitSpots);
     }
   } else {

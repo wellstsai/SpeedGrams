@@ -87,12 +87,9 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
 
   case 'CLEAN_DESTROYED_HIT_SPOTS': {
     // const hitSpots = state.hitSpots.filter((hitSpot) => !hitSpot._destroyed);
-    const hitSpots = [...state.hitSpots];
-    _.remove(hitSpots, (hitSpot) => hitSpot._destroyed);
-    return {
-      ...state,
-      hitSpots,
-    };
+    // const hitSpots = [...state.hitSpots];
+    _.remove(state.hitSpots, (hitSpot) => hitSpot._destroyed);
+    return state;
   }
 
   default:  {
