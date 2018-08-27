@@ -66,38 +66,45 @@ const positionHitSpots = (parentTile, storeHitSpots) => {
   const { id, x, y, width, height } = parentTile;
   const relevantHitSpots = storeHitSpots.filter((hitSpot) => hitSpot.parentId === id);
 
-  relevantHitSpots[0].direction = 'top';
-  relevantHitSpots[0].x = x - (width / 2);
-  relevantHitSpots[0].y = y - (height * 1.5);
+  if (!relevantHitSpots[0]._destroyed) {
+    relevantHitSpots[0].direction = 'top';
+    relevantHitSpots[0].x = x - (width / 2);
+    relevantHitSpots[0].y = y - (height * 1.5);
+  }
 
-  relevantHitSpots[1].direction = 'bottom';
-  relevantHitSpots[1].x = x - (width / 2);
-  relevantHitSpots[1].y = y + (height / 2);
+  if (!relevantHitSpots[1]._destroyed) {
+    relevantHitSpots[1].direction = 'bottom';
+    relevantHitSpots[1].x = x - (width / 2);
+    relevantHitSpots[1].y = y + (height / 2);
+  }
 
-  relevantHitSpots[2].direction = 'left';
-  relevantHitSpots[2].x = x - (width * 1.5);
-  relevantHitSpots[2].y = y - (height / 2);
+  if (!relevantHitSpots[2]._destroyed) {
+    relevantHitSpots[2].direction = 'left';
+    relevantHitSpots[2].x = x - (width * 1.5);
+    relevantHitSpots[2].y = y - (height / 2);
+  }
 
-  relevantHitSpots[3].direction = 'right';
-  relevantHitSpots[3].x = x + (width / 2);
-  relevantHitSpots[3].y = y - (height / 2);
+  if (!relevantHitSpots[3]._destroyed) {
+    relevantHitSpots[3].direction = 'right';
+    relevantHitSpots[3].x = x + (width / 2);
+    relevantHitSpots[3].y = y - (height / 2);
+  }
 };
 
 const autoSnapIfCollision = (parentTile, store) => {
-  // go through every main board tile y hit spots
-    // if y is within, go through x hit spots
-      // if x also within, add to possbileHitSpots
   const { x, y } = parentTile;
   const { mainBoardTileGraph, hitSpots } = getGameState(store);
-
-  
+  console.log('**hitSpots', hitSpots)
+  console.log('parentTile', parentTile)
   const possibleHitSpots = hitSpots.reduce((acc, hitSpot) => {
     const { top, bottom, left, right } = hitSpot.getBounds();
     if (y > top && y < bottom) {
       if (x > left && x < right) {
+        console.log('hit acc push')
         acc.push(hitSpot);
       }
     }
+    console.log('acc', acc)
     return acc;
   }, []);
 
@@ -124,14 +131,37 @@ const autoSnapIfCollision = (parentTile, store) => {
     parentTile.x = relevantHitSpots[0].x + (relevantHitSpots[0].width / 2);
     parentTile.y = relevantHitSpots[0].y + (relevantHitSpots[0].height / 2);
 
-    // update main board graph
     console.log('mianboardtilegraph', mainBoardTileGraph);
     relevantHitSpots.forEach((hitSpot) => {
       const hitTile = mainBoardTileGraph[hitSpot.parentId];
       const placedTile = mainBoardTileGraph[parentTile.id];
+      
+      // update main board graph
       hitTile[hitSpot.direction] = placedTile;
       placedTile[oppositeDirection[hitSpot.direction]] = hitTile;
+      
+      // remove hitspots
+      // console.log('hitTile', hitTile)
+      // console.log('palcedTile.id', placedTile.id)
+      // console.log('hitSpots', hitSpots);
+      // const hitTileHitSpot = hitSpots.find((hitSpot) => {
+      //   // same parent ID && same direction
+      //   if (hitSpot.parentId === hitTile.id)
+      // });
+      // const placedTileHitSpot = hitSpots.find((hitSpot) => hitSpot.id === placedTile.id);
+      // hitTileHitSpot.destroy();
+      // placedTileHitSpot.destroy();
+
+      hitSpot.destroy();
+      // in hit spots find matching parent id with placedTile id and also direction === opposite and destroy
+      const placedTileHitSpot = hitSpots.find((hitSpot) => hitSpot.parentId === placedTile.id && hitSpot.direction === oppositeDirection[hitSpot.direction]);
+      console.log('placedTileHitSpot', placedTileHitSpot);
+      placedTileHitSpot.destroy();
     });
+
+    // clean out destroyed hit spots
+    store.dispatch({ type: 'CLEAN_DESTROYED_HIT_SPOTS' });
+
   } else {
     const directions = ['top', 'bottom', 'left', 'right'];
     const placedTile = mainBoardTileGraph[parentTile.id];
@@ -140,6 +170,7 @@ const autoSnapIfCollision = (parentTile, store) => {
         const previouslyHitTile = placedTile[direction];
         previouslyHitTile[oppositeDirection[direction]] = null;
         placedTile[direction] = null;
+        // re-add hitspot
       }
     });
   }
@@ -162,7 +193,8 @@ function onPlayerTileDragStart(event, store) {
   mainBoardTileSprite.letter = this.letter;
   mainBoardTileSprite.id = shortid.generate();
 
-  hitSpots.forEach((hitSpot) => hitSpot.alpha = 0.5);
+  console.log('***hitSpots', hitSpots)
+  hitSpots.forEach((hitSpot) => hitSpot.alpha = 1);
   // create up down left right sprite for each, alpha 0, position pending, add listeners, add id, dispatch
   const hitSpotTiles = ['up', 'down', 'left', 'right'];
   hitSpotTiles.forEach((hitSpot) => {
@@ -207,6 +239,7 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
   } else if (!isWithinBounds(this, mainBoardBounds) && playerTileSprite._destroyed) {
     this.x = this.initialPosition[0];
     this.y = this.initialPosition[1];
+
     positionHitSpots(this, hitSpots);
   } else if (isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
     store.dispatch({
@@ -238,8 +271,11 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
     });
 
     hitSpots.forEach((hitSpot) => hitSpot.alpha = 0);
-    autoSnapIfCollision(this, store);
-    positionHitSpots(this, hitSpots);
+
+    if (!this._destroyed) {
+      autoSnapIfCollision(this, store);
+      positionHitSpots(this, hitSpots);
+    }
   } else {
     this.on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(this)(e, app));
     this.dragging = true;
@@ -253,7 +289,7 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
     // set hit spots alpha 1 except for own
     hitSpots.forEach((hitSpot) => {
       if (hitSpot.parentId !== this.id) {
-        hitSpot.alpha = 0.5;
+        hitSpot.alpha = 1;
       }
     });
     // check to see if movd out of other hit spots, if so, set alpha to 1
