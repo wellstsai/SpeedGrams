@@ -42,3 +42,17 @@ export const addHitSpot = (hitSpot) => ({
   type: 'ADD_HIT_SPOT',
   hitSpot,
 });
+
+export const cleanOldHitSpots = () => ({
+  type: 'CLEAN_OLD_HIT_SPOTS',
+});
+
+export const addAddTileButton = (addTileButton) => ({
+  type: 'ADD_ADD_TILE_BUTTON',
+  addTileButton,
+});
+
+export const addCompleteButton = (completeButton) => ({
+  type: 'ADD_ADD_TILE_BUTTON',
+  completeButton,
+});

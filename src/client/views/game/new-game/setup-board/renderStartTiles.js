@@ -3,6 +3,7 @@ import shortid from 'shortid';
 import each from 'lodash/each';
 import { getTileBank, getStartingTiles } from '../../setup';
 import { getGameState } from '../../../../store/utils/getGameState';
+import isTilesConnected from '../../utils/isTileConnected';
 
 const oppositeDirection = {
   top: 'bottom',
@@ -12,8 +13,7 @@ const oppositeDirection = {
 };
 
 const renderStartTiles = (store) => {
-  const gameState = getGameState(store);
-  const { resources, bottomPanelScrollLayer } = gameState;
+  const { resources, bottomPanelScrollLayer } = getGameState(store);
   const tileBank = getTileBank();
   const startingTiles = getStartingTiles(2, tileBank); // returns array
   const playerTiles = [];
@@ -230,7 +230,7 @@ function onMainBoardTileSpritePointerMove(event, app) {
 }
 
 function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
-  const { app, mainBoardBounds, hitSpots, mainBoardTileGraph, mainBoardLayer } = getGameState(store);
+  const { app, mainBoardBounds, hitSpots, mainBoardTileGraph, mainBoardLayer, addTileButton, completeButton } = getGameState(store);
 
   if (!isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
     this.destroy();
@@ -277,6 +277,13 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
     if (!this._destroyed) {
       autoSnapIfCollision(this, store);
       positionHitSpots(this, hitSpots);
+    }
+
+    // TODO: if playertiles reach 0 && all connected, enable add tile button, else disable
+    if (!getGameState(store).playerTiles.length && isTilesConnected(store)) {
+      // addTileButton enable styles
+    } else {
+      // addTileButton disable styles
     }
   } else {
     this.on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(this)(e, app));

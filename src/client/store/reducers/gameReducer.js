@@ -12,6 +12,8 @@ const defaultState = {
   mainBoardTileGraph: {},
   isDragging: null,
   hitSpots: [],
+  addTileButton: null,
+  completeButton: null,
 };
 
 const gameReducer = (state = _.cloneDeep(defaultState), action) => {
@@ -88,6 +90,20 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
   case 'CLEAN_OLD_HIT_SPOTS': {
     _.remove(state.hitSpots, (hitSpot) => hitSpot.deletionFlag);
     return state;
+  }
+
+  case 'ADD_ADD_TILE_BUTTON': {
+    return {
+      ...state,
+      ...action.addTileButton,
+    };
+  }
+
+  case 'ADD_COMPLETE_BUTTON': {
+    return {
+      ...state,
+      ...action.completeButton,
+    };
   }
 
   default:  {
