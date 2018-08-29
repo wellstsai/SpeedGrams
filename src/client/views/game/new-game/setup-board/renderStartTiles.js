@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import shortid from 'shortid';
+import each from 'lodash/each';
 import { getTileBank, getStartingTiles } from '../../setup';
 import { getGameState } from '../../../../store/utils/getGameState';
 
@@ -171,7 +172,7 @@ const autoSnapIfCollision = (parentTile, store) => {
       // remove hitspots
       hitSpot.destroy();
       const placedTileHitSpot = hitSpots.find((hitSpot) => (hitSpot.parentId === placedTile.id) && (hitSpot.direction === oppositeDirection[direction]));
-      placedTileHitSpot.destroy();
+      !placedTileHitSpot._destroyed && placedTileHitSpot.destroy();
     });
 
     // clean out destroyed hit spots
@@ -293,6 +294,7 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
     associatedHitSpots.forEach((hitSpot) => {
       if (hitSpot._destroyed) {
         destroyedHitSpotDirections.push(hitSpot.direction);
+        hitSpot.deletionFlag = true;
       }
     });
 
@@ -302,12 +304,17 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
 
     // find parentId of reciprocal hit spot parent, then search store hit spots to restore destroyed
     destroyedHitSpotDirections.forEach((direction) => {
+      if (mainBoardTileGraph[this.id][direction] === null) {
+        return;
+      }
+
       const reciprocalParentId = mainBoardTileGraph[this.id][direction].id;
       const associatedHitSpots = hitSpots.filter((hitSpot) => hitSpot.parentId === reciprocalParentId);
       const destroyedHitSpotDirections = [];
       associatedHitSpots.forEach((hitSpot) => {
         if (hitSpot._destroyed) {
           destroyedHitSpotDirections.push(hitSpot.direction);
+          hitSpot.deletionFlag = true;
         }
       });
 
@@ -318,18 +325,23 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
       });
     });
 
-    store.dispatch({ type: 'CLEAN_DESTROYED_HIT_SPOTS' });
-    const updatedHitSpots = getGameState(store).hitSpots;
+    store.dispatch({ type: 'CLEAN_OLD_HIT_SPOTS' });
+
     // set hit spots alpha 1, and move own hit spots out of board
-    updatedHitSpots.forEach((hitSpot) => {
-      hitSpot.alpha = 1;
-      if (hitSpot.parentId === this.id) {
-        hitSpot.x = -hitSpot.width;
-        hitSpot.y = -hitSpot.height;
+    hitSpots.forEach((hitSpot) => {
+      if (!hitSpot._destroyed) {
+        hitSpot.alpha = 1;
+        if (hitSpot.parentId === this.id) {
+          hitSpot.x = -hitSpot.width;
+          hitSpot.y = -hitSpot.height;
+        }
       }
     });
 
-    // adds currently clicked sprite to top layer
+    // adds all sprites to top layer, then currently clicked sprite
+    each(mainBoardTileGraph, (tile) => {
+      mainBoardLayer.addChild(tile.reference);
+    });
     mainBoardLayer.addChild(this);    
   }
 }
