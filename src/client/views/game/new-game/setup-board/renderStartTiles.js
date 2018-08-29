@@ -66,7 +66,6 @@ const positionHitSpots = (parentTile, storeHitSpots) => {
   const { id, x, y, width, height } = parentTile;
 
   const relevantHitSpots = storeHitSpots.filter((hitSpot) => hitSpot.parentId === id);
-console.log('relevanthitspots position', relevantHitSpots)
   // on initialize, has direction, no hitspots destroyed
   // on regular move, same as above
   // on snap, hitspot becomes destroyed, want to keep it that way
@@ -127,10 +126,12 @@ const autoSnapIfCollision = (parentTile, store) => {
   const { mainBoardTileGraph, hitSpots } = getGameState(store);
 
   const possibleHitSpots = hitSpots.reduce((acc, hitSpot) => {
-    const { top, bottom, left, right } = hitSpot.getBounds();
-    if (y > top && y < bottom) {
-      if (x > left && x < right) {
-        acc.push(hitSpot);
+    if (!hitSpot._destroyed) {
+      const { top, bottom, left, right } = hitSpot.getBounds();
+      if (y > top && y < bottom) {
+        if (x > left && x < right) {
+          acc.push(hitSpot);
+        }
       }
     }
     return acc;
@@ -204,8 +205,8 @@ function onPlayerTileDragStart(event, store) {
   mainBoardTileSprite.scale.set(0.2);
   mainBoardTileSprite.letter = this.letter;
   mainBoardTileSprite.id = shortid.generate();
+  mainBoardTileSprite.resource = this.resource;
 
-  console.log('***hitSpots', hitSpots)
   hitSpots.forEach((hitSpot) => hitSpot.alpha = 1);
 
   const hitSpotTiles = ['top', 'bottom', 'left', 'right'];
@@ -228,8 +229,8 @@ function onMainBoardTileSpritePointerMove(event, app) {
 }
 
 function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
-  const { app, mainBoardBounds, hitSpots, mainBoardTileGraph } = getGameState(store);
-  
+  const { app, mainBoardBounds, hitSpots, mainBoardTileGraph, mainBoardLayer } = getGameState(store);
+
   if (!isWithinBounds(this, mainBoardBounds) && !playerTileSprite._destroyed) {
     this.destroy();
     playerTileSprite.alpha = 1;
@@ -327,7 +328,9 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
         hitSpot.y = -hitSpot.height;
       }
     });
-    // check to see if movd out of other hit spots, if so, set alpha to 1
+
+    // adds currently clicked sprite to top layer
+    mainBoardLayer.addChild(this);    
   }
 }
 
