@@ -4,13 +4,7 @@ import each from 'lodash/each';
 import { getTileBank, getStartingTiles } from '../../setup';
 import { getGameState } from '../../../../store/utils/getGameState';
 import isTilesConnected from '../../utils/isTileConnected';
-
-const oppositeDirection = {
-  top: 'bottom',
-  bottom: 'top',
-  left: 'right',
-  right: 'left',
-};
+import { directions, oppositeDirection } from '../../utils/directions';
 
 const renderStartTiles = (store) => {
   const { resources, bottomPanelScrollLayer } = getGameState(store);
@@ -76,23 +70,24 @@ const positionHitSpots = (parentTile, storeHitSpots) => {
     if (hitSpot._destroyed) {
       return;
     }
+    console.log('**directions', directions)
 
-    if (hitSpot.direction === 'top') {
+    if (hitSpot.direction === directions.TOP) {
       hitSpot.x = x - (width / 2);
       hitSpot.y = y - (height * 1.5);
     }
     
-    if (hitSpot.direction === 'bottom') {
+    if (hitSpot.direction === directions.BOTTOM) {
       hitSpot.x = x - (width / 2);
       hitSpot.y = y + (height / 2);
     }
     
-    if (hitSpot.direction === 'left') {
+    if (hitSpot.direction === directions.LEFT) {
       hitSpot.x = x - (width * 1.5);
       hitSpot.y = y - (height / 2);
     }
 
-    if (hitSpot.direction === 'right') {
+    if (hitSpot.direction === directions.RIGHT) {
       hitSpot.x = x + (width / 2);
       hitSpot.y = y - (height / 2);
     }
@@ -167,23 +162,22 @@ const autoSnapIfCollision = (parentTile, store) => {
       // update main board graph
       const direction = hitSpot.direction;
       hitTile[direction] = placedTile;
-      placedTile[oppositeDirection[direction]] = hitTile;
+      placedTile[oppositeDirection(direction)] = hitTile;
       
       // remove hitspots
       hitSpot.destroy();
-      const placedTileHitSpot = hitSpots.find((hitSpot) => (hitSpot.parentId === placedTile.id) && (hitSpot.direction === oppositeDirection[direction]));
+      const placedTileHitSpot = hitSpots.find((hitSpot) => (hitSpot.parentId === placedTile.id) && (hitSpot.direction === oppositeDirection(direction)));
       !placedTileHitSpot._destroyed && placedTileHitSpot.destroy();
     });
 
     // clean out destroyed hit spots
     // store.dispatch({ type: 'CLEAN_DESTROYED_HIT_SPOTS' });
   } else {
-    const directions = ['top', 'bottom', 'left', 'right'];
     const placedTile = mainBoardTileGraph[parentTile.id];
-    directions.forEach((direction) => {
+    directions.array.forEach((direction) => {
       if (placedTile[direction]) {
         const previouslyHitTile = placedTile[direction];
-        previouslyHitTile[oppositeDirection[direction]] = null;
+        previouslyHitTile[oppositeDirection(direction)] = null;
         placedTile[direction] = null;
       }
     });
@@ -210,7 +204,7 @@ function onPlayerTileDragStart(event, store) {
 
   hitSpots.forEach((hitSpot) => hitSpot.alpha = 1);
 
-  const hitSpotTiles = ['top', 'bottom', 'left', 'right'];
+  const hitSpotTiles = directions.array;
   hitSpotTiles.forEach((hitSpot) => {
     createHitSpot(store, mainBoardTileSprite, hitSpot);
   });
@@ -255,8 +249,8 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
         id: this.id,
         letter: this.letter,
         reference: this,
-        up: null,
-        down: null,
+        top: null,
+        bottom: null,
         left: null,
         right: null,
       },
