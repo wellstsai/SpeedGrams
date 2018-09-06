@@ -57,7 +57,7 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
   case 'DELETE_PLAYER_TILE': {
     return {
       ...state,
-      playerTiles: state.playerTiles.filter((tile, index) => index !== action.index),
+      playerTiles: state.playerTiles.filter((tile) => tile.id !== action.id),
     };
   }
 
@@ -95,14 +95,14 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
   case 'ADD_ADD_TILE_BUTTON': {
     return {
       ...state,
-      ...action.addTileButton,
+      addTileButton: action.addTileButton,
     };
   }
 
   case 'ADD_COMPLETE_BUTTON': {
     return {
       ...state,
-      ...action.completeButton,
+      completeButton: action.completeButton,
     };
   }
 

@@ -23,9 +23,9 @@ export const initializePlayerTiles = (playerTiles) => ({
   playerTiles,
 });
 
-export const deletePlayerTile = (index) => ({
+export const deletePlayerTile = (id) => ({
   type: 'DELETE_PLAYER_TILE',
-  index,
+  id,
 });
 
 export const addMainBoardTile = (mainBoardTile) => ({

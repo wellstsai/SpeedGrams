@@ -19,7 +19,10 @@ const renderButtons = (store) => {
   // Add Tile Button
   const addTileButton = new Button(700, 350, 130,45);
   addTileButton.setText('Add Tile', style);
+  addTileButton.interactive = false;
   addTileButton.clicked = () => {
+    console.log('**adTilebutton.interactive', addTileButton.interactive)
+    // if (!addTileButton.interactive) return;
     console.log('I am clicked');
     console.log('**testing', getGameState(store))
   };

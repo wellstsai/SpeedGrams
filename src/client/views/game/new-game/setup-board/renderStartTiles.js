@@ -5,6 +5,7 @@ import { getTileBank, getStartingTiles } from '../../setup';
 import { getGameState } from '../../../../store/utils/getGameState';
 import isTilesConnected from '../../utils/isTileConnected';
 import { directions, oppositeDirection } from '../../utils/directions';
+import positionPlayerTiles from '../../utils/positionPlayerTiles';
 
 const renderStartTiles = (store) => {
   const { resources, bottomPanelScrollLayer } = getGameState(store);
@@ -12,11 +13,11 @@ const renderStartTiles = (store) => {
   const startingTiles = getStartingTiles(2, tileBank); // returns array
   const playerTiles = [];
 
-  startingTiles.forEach((letter, index) => {
-    // position the sprite
+  // create starting tile sprites
+  startingTiles.forEach((letter) => {
     const letterSprite = new PIXI.Sprite(resources.tiles.textures[`letter_${letter.toUpperCase()}.png`]);
-    letterSprite.x = (index % 12) * 53;
-    letterSprite.y = Math.floor(index / 12) * 53;
+    letterSprite.x = -letterSprite.width;
+    letterSprite.y = -letterSprite.height;
     letterSprite.interactive = true;
     letterSprite.buttonMode = true;
     letterSprite.anchor.set(0.5);
@@ -25,19 +26,22 @@ const renderStartTiles = (store) => {
     // custom params
     letterSprite.resource = resources.tiles.textures[`letter_${letter.toUpperCase()}.png`];
     letterSprite.letter = letter;
-    letterSprite.index = index;
+    letterSprite.id = shortid.generate();
 
     letterSprite
       .on('pointerdown', (e) => onPlayerTileDragStart.bind(letterSprite)(e, store));
     bottomPanelScrollLayer.addChild(letterSprite);
 
     playerTiles.push({
-      id: index,
+      id: letterSprite.id,
       letter,
       sprite: letterSprite,
     });
 
   });
+
+  // position sprites
+  positionPlayerTiles(playerTiles.map((tile) => tile.sprite));
 
   store.dispatch({
     type: 'INITIALIZE_PLAYER_TILES',
@@ -70,7 +74,6 @@ const positionHitSpots = (parentTile, storeHitSpots) => {
     if (hitSpot._destroyed) {
       return;
     }
-    console.log('**directions', directions)
 
     if (hitSpot.direction === directions.TOP) {
       hitSpot.x = x - (width / 2);
@@ -239,7 +242,7 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
 
     store.dispatch({
       type: 'DELETE_PLAYER_TILE',
-      index: playerTileSprite.index,
+      id: playerTileSprite.id,
     });
     playerTileSprite.destroy();
     
@@ -255,6 +258,10 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
         right: null,
       },
     });
+
+    // re-position player tiles after one is gone
+    const { playerTiles } = getGameState(store);
+    positionPlayerTiles(playerTiles.map((tile) => tile.sprite));
   }
   
   if (this.dragging) {
@@ -275,8 +282,11 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
 
     // TODO: if playertiles reach 0 && all connected, enable add tile button, else disable
     if (!getGameState(store).playerTiles.length && isTilesConnected(store)) {
+      console.log('hit add tile')
       // addTileButton enable styles
+      addTileButton.interactive = true;
     } else {
+      addTileButton.interactive = false;
       // addTileButton disable styles
     }
   } else {

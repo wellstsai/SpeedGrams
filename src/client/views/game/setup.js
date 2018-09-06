@@ -32,7 +32,7 @@ const tiles = [
 
 const numOfStartTilesMap = {
   // 2: 21,
-  2: 80,
+  2: 5,
   3: 21,
   4: 21,
   5: 15,
