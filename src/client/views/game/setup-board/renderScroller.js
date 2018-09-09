@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 
-import { getGameState } from '../../../../store/utils/getGameState';
+import { getGameState } from '../../../store/utils/getGameState';
 
 const renderScroller = (store) => {
   const gameStore = getGameState(store);

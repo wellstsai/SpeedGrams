@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
-import Button from '../../components/button';
-import { getGameState } from '../../../../store/utils/getGameState';
+import Button from '../components/button';
+import { getGameState } from '../../../store/utils/getGameState';
 
 const renderButtons = (store) => {
   const { mainBoardLayer } = getGameState(store);

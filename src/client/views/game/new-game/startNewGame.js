@@ -1,4 +1,4 @@
-import setupBoard from './setup-board';
+import setupBoard from '../setup-board';
 
 const startNewGame = (store, numOfPlayers) => {
   // clearBoard();

@@ -1,53 +1,10 @@
 import * as PIXI from 'pixi.js';
 import shortid from 'shortid';
 import each from 'lodash/each';
-import { getTileBank, getStartingTiles } from '../../setup';
-import { getGameState } from '../../../../store/utils/getGameState';
-import isTilesConnected from '../../utils/isTileConnected';
-import { directions, oppositeDirection } from '../../utils/directions';
-import positionPlayerTiles from '../../utils/positionPlayerTiles';
-
-const renderStartTiles = (store) => {
-  const { resources, bottomPanelScrollLayer } = getGameState(store);
-  const tileBank = getTileBank();
-  const startingTiles = getStartingTiles(2, tileBank); // returns array
-  const playerTiles = [];
-
-  // create starting tile sprites
-  startingTiles.forEach((letter) => {
-    const letterSprite = new PIXI.Sprite(resources.tiles.textures[`letter_${letter.toUpperCase()}.png`]);
-    letterSprite.x = -letterSprite.width;
-    letterSprite.y = -letterSprite.height;
-    letterSprite.interactive = true;
-    letterSprite.buttonMode = true;
-    letterSprite.anchor.set(0.5);
-    letterSprite.scale.set(0.2);
-    
-    // custom params
-    letterSprite.resource = resources.tiles.textures[`letter_${letter.toUpperCase()}.png`];
-    letterSprite.letter = letter;
-    letterSprite.id = shortid.generate();
-
-    letterSprite
-      .on('pointerdown', (e) => onPlayerTileDragStart.bind(letterSprite)(e, store));
-    bottomPanelScrollLayer.addChild(letterSprite);
-
-    playerTiles.push({
-      id: letterSprite.id,
-      letter,
-      sprite: letterSprite,
-    });
-
-  });
-
-  // position sprites
-  positionPlayerTiles(playerTiles.map((tile) => tile.sprite));
-
-  store.dispatch({
-    type: 'INITIALIZE_PLAYER_TILES',
-    playerTiles,
-  });
-};
+import { getGameState } from '../../../store/utils/getGameState';
+import isTilesConnected from '../utils/isTileConnected';
+import { directions, oppositeDirection } from '../utils/directions';
+import positionPlayerTiles from '../utils/positionPlayerTiles';
 
 const isWithinBounds = (sprite, bounds) => {
   const { width, height, x, y } = bounds;
@@ -283,11 +240,14 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
     // TODO: if playertiles reach 0 && all connected, enable add tile button, else disable
     if (!getGameState(store).playerTiles.length && isTilesConnected(store)) {
       console.log('hit add tile')
-      // addTileButton enable styles
+      // TODO: addTileButton enable styles
       addTileButton.interactive = true;
+      // add a tile from bank
+      addTile(store);
+      // reposition tiles
     } else {
       addTileButton.interactive = false;
-      // addTileButton disable styles
+      // TODO: addTileButton disable styles
     }
   } else {
     this.on('pointermove', (e) => onMainBoardTileSpritePointerMove.bind(this)(e, app));
@@ -357,4 +317,8 @@ function onMainBoardTileSpritePointerDown(event, store, playerTileSprite) {
   }
 }
 
-export default renderStartTiles;
+export {
+  onPlayerTileDragStart,
+  onMainBoardTileSpritePointerMove,
+  onMainBoardTileSpritePointerDown,
+};

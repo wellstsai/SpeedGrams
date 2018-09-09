@@ -47,12 +47,12 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
     };
   }
 
-  case 'INITIALIZE_PLAYER_TILES': {
-    return {
-      ...state,
-      playerTiles: [...state.playerTiles, ...action.playerTiles],
-    };
-  }
+  // case 'INITIALIZE_PLAYER_TILES': {
+  //   return {
+  //     ...state,
+  //     playerTiles: [...state.playerTiles, ...action.playerTiles],
+  //   };
+  // }
 
   case 'DELETE_PLAYER_TILE': {
     return {
@@ -103,6 +103,15 @@ const gameReducer = (state = _.cloneDeep(defaultState), action) => {
     return {
       ...state,
       completeButton: action.completeButton,
+    };
+  }
+
+  case 'ADD_PLAYER_TILE': {
+    const playerTiles = [...state.playerTiles];
+    playerTiles.push(action.playerTile);
+    return {
+      ...state,
+      playerTiles,
     };
   }
 

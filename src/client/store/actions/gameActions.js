@@ -18,10 +18,10 @@ export const addMainBoardLayer = (mainBoardLayer) => ({
   mainBoardLayer,
 });
 
-export const initializePlayerTiles = (playerTiles) => ({
-  type: 'INITIALIZE_PLAYER_TILES',
-  playerTiles,
-});
+// export const initializePlayerTiles = (playerTiles) => ({
+//   type: 'INITIALIZE_PLAYER_TILES',
+//   playerTiles,
+// });
 
 export const deletePlayerTile = (id) => ({
   type: 'DELETE_PLAYER_TILE',
